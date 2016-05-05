@@ -1,23 +1,27 @@
 # deoplete-swift
 
-Adds auto-complete support for the Swift programming language to Vim
+Adds auto-complete support for Swift-based Xcode projects to Vim.
 
 ## Installation
 
-Using your favorite package manager or whatever (idk, you probably know vim
-better than I do):
+Install SourceKittenDaemon (deoplete-swift depends on it for completion)
+
+Using your favorite vim package manager:
 
 ```
-Plug 'landaire/deoplete-swift'
+" dein
+dein#add('smallfx/deoplete-swift')
+
+" or neobundle
+NeoBundle 'smallfx/deoplete-swift'
+
+" et cetera
 ```
 
 ## Configuration
 
-Default configuration:
+Configuration is currently limited.
 
-`let g:deoplete#sources#swift#sourcekittendaemon = ''` location of the `sourcekittendaemon`
-on your system. This is optional and will be found in your `$PATH` if not set
+deoplete-swift expects SourceKittenDaemon to be running on port 8081, properly configured for the project you need completions for.
 
-`let g:deoplete#sources#swift#daemon_autostart = 1` - whether or not `sourcekittendaemon`
-should be auto-started
-
+Eventually deoplete-swift will auto-run SourceKittenDaemon and be more configurable in general.
