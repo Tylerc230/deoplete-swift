@@ -1,8 +1,8 @@
 import os
 import re
-import subprocess
 import sys
 import json
+import urllib.request as urllib2
 
 from .base import Base
 
@@ -18,8 +18,11 @@ class Source(Base):
         self.filetypes = ['swift']
         self.input_pattern = r'(?:\b[^\W\d]\w*|[\]\)])(?:\.(?:[^\W\d]\w*)?)*\(?'
         self.rank = 500
+        
+        self.temp_file_directory = "~/.swifts/"
 
-        self._source_kitten_binary = self.vim.vars['deoplete#sources#swift#source_kitten_binary']
+        if not os.path.exists(self.temp_file_directory):
+            os.makedirs(self.temp_file_directory)
 
     def get_complete_position(self, context):
         m = re.search(r'\w*$', context['input'])
@@ -27,31 +30,26 @@ class Source(Base):
 
     def gather_candidates(self, context):
         line = self.vim.current.window.cursor[0]
-        column = context['complete_position']
+        column = self.vim.current.window.cursor[1]
 
+        filename = self.vim.call('expand', '%:p').split('/')[-1]
         buf = self.vim.current.buffer
         offset = self.vim.call('line2byte', line) + \
-            charpos2bytepos(self.vim, context['input'][: column], column) - 1
-        offset += len(context['complete_str'])
-        source = '\n'.join(buf).encode()
+            charpos2bytepos(self.vim, context['input'], column) - 1
 
-        args = [self.source_kitten_binary(), "complete", "--offset", str(offset)]
+        source = '\n'.join(buf)
+        tmp_path = os.path.expanduser("~/.swifts/"+filename)
+        tmp_file = open(tmp_path, 'w+')
+        tmp_file.write(source)
+        tmp_file.close()
 
-        process = subprocess.Popen(args,
-                                   stdin=subprocess.PIPE,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   start_new_session=True)
-        process.stdin.write(source)
-        stdout_data, stderr_data = process.communicate()
-        result = stdout_data.decode()
+        request = urllib2.Request("http://localhost:8081/complete")
+        request.add_header("X-Path", tmp_path)
+        request.add_header("X-Offset", offset - 1)
+        request.add_header("X-File", filename)
+        response = urllib2.urlopen(request).read().decode('utf-8')
 
-        if stderr_data != b'':
-            raise Exception((args, stderr_data.decode()))
-
-        results = json.loads(result)
-
-        return self.identifiers_from_result(results)
+        return self.identifiers_from_result(json.loads(response))
 
     def identifiers_from_result(self, result):
         out = []
@@ -62,21 +60,20 @@ class Source(Base):
         for complete in result:
             candidates.append(complete)
 
-            desc_len = len(complete['name'])
+            desc_len = len(complete['descriptionKey'])
 
             if desc_len > longest_desc_length:
-                longest_desc = complete['name']
+                longest_desc = complete['descriptionKey']
                 longest_desc_length = desc_len
 
         for completion in candidates:
-            description = completion['name']
+            description = completion['descriptionKey']
             _type = completion['typeName']
-            abbr = description + ' ' + _type.rjust((len(description) - longest_desc_length) + 1)
+            abbr = description + ' : ' + _type.rjust((len(description) - longest_desc_length) + 3)
             info = _type
 
             candidate = dict(word=description,
                               abbr=abbr,
-                              info=info,
                               dup=1
                               )
 
