@@ -5,6 +5,7 @@ Adds auto-completion support for Swift-based Xcode projects in Neovim using Shou
 ## Installation
 
 Install [`deoplete`](https://github.com/Shougo/deoplete.nvim)
+
 Install [`SourceKittenDaemon`](https://github.com/terhechte/SourceKittenDaemon) (deoplete-swift depends on it for completion)
 
 Using your favorite vim package manager:
