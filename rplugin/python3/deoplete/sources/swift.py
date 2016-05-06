@@ -19,7 +19,7 @@ class Source(Base):
         self.input_pattern = r'(?:\b[^\W\d]\w*|[\]\)])(?:\.(?:[^\W\d]\w*)?)*\(?'
         self.rank = 500
         
-        self.temp_file_directory = "~/.swifts/"
+        self.temp_file_directory = "/tmp/deoplete-swift/"
 
         if not os.path.exists(self.temp_file_directory):
             os.makedirs(self.temp_file_directory)
@@ -38,7 +38,7 @@ class Source(Base):
             charpos2bytepos(self.vim, context['input'], column) - 1
 
         source = '\n'.join(buf)
-        tmp_path = os.path.expanduser("~/.swifts/"+filename)
+        tmp_path = self.temp_file_directory + filename
         tmp_file = open(tmp_path, 'w+')
         tmp_file.write(source)
         tmp_file.close()
