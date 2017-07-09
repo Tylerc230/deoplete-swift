@@ -35,7 +35,7 @@ class Source(Base):
         filename = self.vim.call('expand', '%:p').split('/')[-1]
         buf = self.vim.current.buffer
         offset = self.vim.call('line2byte', line) + \
-            charpos2bytepos(self.vim, context['input'], column) - 1
+            charpos2bytepos('utf-8', context['input'], column) - 1
 
         source = '\n'.join(buf)
         tmp_path = self.temp_file_directory + filename
