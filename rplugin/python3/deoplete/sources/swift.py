@@ -47,9 +47,12 @@ class Source(Base):
         request.add_header("X-Path", tmp_path)
         request.add_header("X-Offset", offset - 1)
         request.add_header("X-File", filename)
-        response = urllib2.urlopen(request).read().decode('utf-8')
+        try:
+            response = urllib2.urlopen(request).read().decode('utf-8')
+            return self.identifiers_from_result(json.loads(response))
+        except:
+            return []
 
-        return self.identifiers_from_result(json.loads(response))
 
     def identifiers_from_result(self, result):
         out = []
@@ -80,56 +83,4 @@ class Source(Base):
             out.append(candidate)
 
         return out
-
-    def calltips_from_result(self, result):
-        out = []
-
-        result = result[1:]
-        for calltip in result:
-            candidate = dict(
-                abbr=calltip,
-                word=self.parse_function_parameters(calltip),
-                info=calltip
-            )
-
-            out.append(candidate)
-
-        return out
-
-    def parse_function_parameters(self, decl):
-        """Parses the function parameters from a function decl, returns them as a string"""
-        last_lparen = decl.rfind('(')
-        last_rparen = decl.rfind(')')
-
-        param_list = decl[last_lparen + 1 : last_rparen]
-        param_list = param_list.split(' ')
-        # take only the names
-        param_list = param_list[1::2]
-
-        return ' '.join(param_list)
-
-    def source_kitten_binary(self):
-        try:
-            if os.path.isfile(self._source_kitten_binary):
-                return self._source_kitten_binary
-            else:
-                raise
-        except Exception:
-            return self.find_binary_path('sourcekitten')
-
-    def find_binary_path(self, cmd):
-        def is_exec(fpath):
-            return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-        fpath, fname = os.path.split(cmd)
-        if fpath:
-            if is_exec(cmd):
-                return cmd
-        else:
-            for path in os.environ["PATH"].split(os.pathsep):
-                path = path.strip('"')
-                binary = os.path.join(path, cmd)
-                if is_exec(binary):
-                    return binary
-        return error(self.vim, cmd + ' binary not found')
 
