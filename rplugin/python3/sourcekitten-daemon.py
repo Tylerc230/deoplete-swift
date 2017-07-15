@@ -7,9 +7,10 @@ class SourceKittenDaemon(object):
 
     @neovim.function('LaunchSourceKitten')
     def launch(self, args):
-        job = "sourcekittendaemon start --project {project_name} --port {port}"
-        cmd = "jobstart ({job})"
-        self.vim.command(cmd)
+        project_name = args[0]
+        port = args[1]
+        job = f"\"sourcekittendaemon start --project {project_name} --port {port}\""
+        self.vim.funcs.jobstart(job)
 
     @neovim.function('DoItPython')
     def doItPython(self, args):
