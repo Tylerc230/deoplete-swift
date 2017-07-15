@@ -9,9 +9,6 @@ class SourceKittenDaemon(object):
     def launch(self, args):
         project_name = args[0]
         port = args[1]
-        job = f"\"sourcekittendaemon start --project {project_name} --port {port}\""
+        job = f"sourcekittendaemon start --project {project_name} --port {port}"
         self.vim.funcs.jobstart(job)
 
-    @neovim.function('DoItPython')
-    def doItPython(self, args):
-        self.vim.command('echo "hello from DoItPython"')
