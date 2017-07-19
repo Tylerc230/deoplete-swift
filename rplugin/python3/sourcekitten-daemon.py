@@ -11,9 +11,8 @@ class SourceKittenDaemon(object):
     @neovim.function('LaunchSourceKittenWithXCodeProj')
     def launch_with_xcodeproj(self, args):
         project_name = args[0]
-        port = args[1]
         try:
-            self._launch(project_name, port)
+            self._launch(project_name)
         except Exception as error:
             msg = error.args[0]
             self._echom(msg)
@@ -22,7 +21,7 @@ class SourceKittenDaemon(object):
     def launch_from_vex_project(self, args):
         try:
             vexproj = self._load_vex_project()
-            self._launch(vexproj['xcodeproj'], 8081)
+            self._launch(vexproj['xcodeproj'])
         except Exception as error:
             msg = error.args[0]
             self._echom(msg)
@@ -34,9 +33,10 @@ class SourceKittenDaemon(object):
             self.vim.funcs.jobstop(self.job_id)
             self.job_id = None
 
-    def _launch(self, project_name, port):
+    def _launch(self, project_name):
         self._check_file_exists(project_name)
         if self.job_id == None:
+            port = self.vim.vars.get("sourcekittendaemon_port", 8081)
             job = f"sourcekittendaemon start --project {project_name} --port {port}"
             self.job_id = self.vim.funcs.jobstart(job)
             if self.job_id == None:
